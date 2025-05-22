@@ -1,12 +1,11 @@
 ﻿// https://stackoverflow.com/questions/12219232/xml-signature-ds-prefix
-using System.Reflection;
-using System.Security.Cryptography.Xml;
-using System.Security.Cryptography;
-using System.Xml;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System;
-using CryptoAPI;
+using System.Reflection;
+using System.Security.Cryptography;
+using System.Security.Cryptography.Xml;
+using System.Xml;
 
 namespace VerfySignedXML
 {
@@ -116,13 +115,12 @@ namespace VerfySignedXML
             document.AppendChild(document.ImportNode(e, true));
 
             var canonicalizationMethodObject = this.SignedInfo.CanonicalizationMethodObject;
-            //SetPrefix(prefix, document.DocumentElement);
             canonicalizationMethodObject.LoadInput(document);
-            //return canonicalizationMethodObject.GetDigestedOutput(hash);
-            var t = new StreamReader(((Stream)canonicalizationMethodObject.GetOutput())).ReadToEnd();
-            Console.WriteLine("C14Nの結果:{0}", t);
-            var x = ((MemoryStream)canonicalizationMethodObject.GetOutput()).ToArray();
-            return x;
+            return canonicalizationMethodObject.GetDigestedOutput(hash);
+            //var t = new StreamReader(((Stream)canonicalizationMethodObject.GetOutput())).ReadToEnd();
+            //Console.WriteLine("C14Nの結果:{0}", t);
+            //var x = ((MemoryStream)canonicalizationMethodObject.GetOutput()).ToArray();
+            //return x;
         }
 
         private void SetPrefix(string prefix, XmlNode node)
