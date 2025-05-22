@@ -6,6 +6,7 @@ using System.Xml;
 using System.Collections.Generic;
 using System.IO;
 using System;
+using CryptoAPI;
 
 namespace VerfySignedXML
 {
@@ -115,6 +116,7 @@ namespace VerfySignedXML
             document.AppendChild(document.ImportNode(e, true));
 
             var canonicalizationMethodObject = this.SignedInfo.CanonicalizationMethodObject;
+            //SetPrefix(prefix, document.DocumentElement);
             canonicalizationMethodObject.LoadInput(document);
             //return canonicalizationMethodObject.GetDigestedOutput(hash);
             var t = new StreamReader(((Stream)canonicalizationMethodObject.GetOutput())).ReadToEnd();
