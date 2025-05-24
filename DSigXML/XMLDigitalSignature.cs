@@ -167,7 +167,7 @@ namespace XMLDSig
                 var x509 = new X509Certificate2(cerFileName, password, X509KeyStorageFlags.Exportable);
                 var signedXml = SignXml(xmlDoc, x509, id);
 
-                list.Item(list.Count - 1).AppendChild(xmlDoc.ImportNode(signedXml, true));
+                list.Item(list.Count - 1).ParentNode.AppendChild(xmlDoc.ImportNode(signedXml, true));
 
                 xmlDoc.Save(signedXmlFilename);
             }
@@ -325,8 +325,7 @@ namespace XMLDSig
                 xmlDoc.PreserveWhitespace = true;
                 xmlDoc.Load(signedXmlFilename);
 
-                var result = VerifyXml(xmlDoc);
-                if (result)
+                if (VerifyXml(xmlDoc))
                 {
                     Console.WriteLine("The XML signature is valid.");
                 }
@@ -344,32 +343,42 @@ namespace XMLDSig
 
         public Boolean VerifyXml(XmlDocument Doc)
         {
-            var signedXml = new SignedXml(Doc);
             var nodeList = Doc.GetElementsByTagName("Signature", "*");
 
             if (nodeList.Count <= 0)
             {
                 throw new CryptographicException("Verification failed: No Signature was found in the document.");
             }
-            if (nodeList.Count >= 2)
+
+            int cnt = 1;
+            Boolean result = true;
+            foreach (var elm in nodeList)
             {
-                throw new CryptographicException("Verification failed: More that one signature was found for the document.");
+                var signedXml = new SignedXml(Doc);
+                signedXml.LoadXml((XmlElement)elm);
+                if (signedXml.CheckSignature())
+                {
+                    Console.WriteLine("Signature is OK. No.{0}", cnt);
+
+                    //var x509certList = Doc.GetElementsByTagName("X509Certificate", "*");
+                    //var x509certText = x509certList[0].InnerText;
+                    //var x = new X509Certificate2(Convert.FromBase64String(x509certText));
+                    //var ch = new X509Chain();
+                    ////ch.ChainPolicy.RevocationMode = X509RevocationMode.Online;
+                    //ch.ChainPolicy.RevocationMode = X509RevocationMode.Offline;
+                    ////ch.ChainPolicy.RevocationFlag = X509RevocationFlag.EntireChain;
+                    //var isChainOK = ch.Build(x);
+                    //Console.WriteLine("Chain Build {0}", isChainOK);
+                }
+                else
+                {
+                    Console.WriteLine("Signature is NG. No.{0}", cnt);
+                    result = false;
+                }
+                cnt++;
             }
-            var elm = (XmlElement)nodeList[0];
-            signedXml.LoadXml(elm);
-            var rtn = signedXml.CheckSignature();
 
-            var x509certList = Doc.GetElementsByTagName("X509Certificate", "*");
-            var x509certText = x509certList[0].InnerText;
-            var x = new X509Certificate2(Convert.FromBase64String(x509certText));
-            var ch = new X509Chain();
-            //ch.ChainPolicy.RevocationMode = X509RevocationMode.Online;
-            ch.ChainPolicy.RevocationMode = X509RevocationMode.Offline;
-            //ch.ChainPolicy.RevocationFlag = X509RevocationFlag.EntireChain;
-            var isChainOK = ch.Build(x);
-            Console.WriteLine("Chain Build {0}", isChainOK);
-
-            return rtn;
+            return result;
         }
 
 
