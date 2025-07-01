@@ -2,15 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 using VerfySignedXML;
-using System.Security.Policy;
 
 namespace XMLDSig
 {
@@ -122,8 +118,8 @@ namespace XMLDSig
                     case DIGEST_KIND.SHA1:
                         hashM = SHA1.Create();
                         // 以下も同じ
-                        //new SHA1Cng();
-                        //new SHA1CryptoServiceProvider();
+                        //new SHA1Cng();    //CryptoAPI Next Generation
+                        //new SHA1CryptoServiceProvider();  // CryptoAPI Legacy
                         break;
                     case DIGEST_KIND.SHA384:
                         hashM = SHA384.Create();
@@ -265,9 +261,6 @@ namespace XMLDSig
             signedXml.KeyInfo = keyInfo;
 
             signedXml.ComputeSignature("dsig");
-            dispRowData(signedXml.SignatureValue);
-            string base64Val = Convert.ToBase64String(signedXml.SignatureValue);
-            Console.WriteLine("SignatureVale={0}", base64Val);
 
             return signedXml.GetXml();
         }

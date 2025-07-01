@@ -1,7 +1,7 @@
 ﻿// https://stackoverflow.com/questions/12219232/xml-signature-ds-prefix
-using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Xml;
@@ -89,7 +89,8 @@ namespace VerfySignedXML
             }
 
             Signature.ObjectList.Add(hash);
-            this.m_signature.SignatureValue = this.cryptoApiAsymmetricAlgorithm.SignData(this.GetC14NDigest(hash), hashAlgorithm);
+            // ハッシュ値算出→ICCardで署名付与→署名結果のbyte配列の順序を逆にした結果をSignatureValueに設定
+            this.m_signature.SignatureValue = this.cryptoApiAsymmetricAlgorithm.SignData(this.GetC14NDigest(hash), hashAlgorithm).Reverse().ToArray();
         }
 
         public new XmlElement GetXml()
@@ -116,11 +117,7 @@ namespace VerfySignedXML
 
             var canonicalizationMethodObject = this.SignedInfo.CanonicalizationMethodObject;
             canonicalizationMethodObject.LoadInput(document);
-            return canonicalizationMethodObject.GetDigestedOutput(hash);
-            //var t = new StreamReader(((Stream)canonicalizationMethodObject.GetOutput())).ReadToEnd();
-            //Console.WriteLine("C14Nの結果:{0}", t);
-            //var x = ((MemoryStream)canonicalizationMethodObject.GetOutput()).ToArray();
-            //return x;
+            return ((MemoryStream)canonicalizationMethodObject.GetOutput()).ToArray();
         }
 
         private void SetPrefix(string prefix, XmlNode node)
